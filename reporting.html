@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>CRM Reporting Appels — Import + Stats + Questionnaire</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<!-- SheetJS -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+  :root{
+    --bg:#f6f9ff; --card:#fff; --text:#0b1220; --muted:rgba(11,18,32,.62);
+    --stroke:rgba(15,23,42,.10); --shadow:0 18px 60px rgba(0,0,0,.08);
+    --blue:#0b57d0; --cyan:#00c2ff; --gold:#d4af37; --green:#16a34a; --red:#ef4444;
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:linear-gradient(180deg,#f7fbff,#f1f5ff); color:var(--text);
+  }
+  header{
+    padding:16px 14px 12px;
+    background:linear-gradient(135deg,#0b57d0,#003b9a);
+    color:#fff; position:sticky; top:0; z-index:50;
+    box-shadow:0 14px 36px rgba(0,0,0,.16);
+  }
+  .wrap{max-width:1240px;margin:auto;padding:14px}
+  .topRow{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .brand{display:flex; gap:10px; align-items:center; flex:1; min-width:260px;}
+  .brand .dot{
+    width:42px; height:42px; border-radius:14px;
+    background:linear-gradient(135deg,var(--gold),var(--cyan));
+    box-shadow:0 12px 30px rgba(0,0,0,.22);
+  }
+  .brand h1{margin:0;font-size:16px;line-height:1.1;font-weight:1000;letter-spacing:.3px}
+  .brand p{margin:2px 0 0; font-size:12px; opacity:.9}
+
+  .btn{
+    border:none; cursor:pointer; font-weight:1000;
+    padding:10px 14px; border-radius:14px;
+    background:rgba(255,255,255,.14); color:#fff;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+  }
+  .btn:hover{filter:brightness(1.05)}
+  .btn.primary{
+    background:linear-gradient(90deg,#00c2ff,#22c55e);
+    color:#02111f; box-shadow:0 16px 36px rgba(0,0,0,.22);
+  }
+  .btn.danger{
+    background:linear-gradient(90deg,#ff2d55,#ffb703);
+    color:#16030a;
+  }
+  .pill{
+    display:inline-flex; gap:8px; align-items:center;
+    padding:8px 12px; border-radius:999px;
+    background:rgba(255,255,255,.14);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+    font-weight:1000; font-size:12px;
+    white-space:nowrap;
+  }
+
+  .grid{
+    display:grid; gap:12px;
+    grid-template-columns:repeat(12,1fr);
+  }
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    border:1px solid var(--stroke);
+    overflow:hidden;
+  }
+  .cardHead{
+    padding:12px 14px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    border-bottom:1px solid var(--stroke);
+    background:linear-gradient(180deg,#ffffff,#f8fbff);
+  }
+  .cardHead h2{margin:0;font-size:13px;font-weight:1000}
+  .cardBody{padding:12px 14px}
+  .muted{color:var(--muted); font-size:12px}
+  .note{
+    padding:10px 12px; border-radius:14px;
+    border:1px dashed rgba(11,87,208,.25);
+    background:rgba(11,87,208,.06);
+    font-size:12px; font-weight:900;
+  }
+
+  .span-12{grid-column:span 12}
+  .span-6{grid-column:span 6}
+  @media (max-width:1100px){ .span-6{grid-column:span 12} }
+
+  .filters{display:flex; flex-wrap:wrap; gap:10px}
+  .field{display:flex; flex-direction:column; gap:6px; min-width:190px}
+  .field label{font-size:11px; font-weight:1000; color:var(--muted)}
+  input, select, textarea{
+    width:100%; padding:10px 12px;
+    border-radius:14px; border:1px solid var(--stroke);
+    outline:none; background:#fff; font-weight:900;
+  }
+  textarea{min-height:42px; resize:vertical; font-weight:800}
+  input:focus, select:focus, textarea:focus{
+    border-color:rgba(11,87,208,.35);
+    box-shadow:0 0 0 4px rgba(11,87,208,.10)
+  }
+
+  .kpis{
+    display:grid; gap:10px;
+    grid-template-columns:repeat(6,minmax(140px,1fr));
+  }
+  @media (max-width:1100px){ .kpis{grid-template-columns:repeat(3,minmax(140px,1fr));} }
+  @media (max-width:650px){ .kpis{grid-template-columns:repeat(2,minmax(140px,1fr));} }
+  .kpi{
+    padding:12px; border-radius:16px;
+    border:1px solid var(--stroke);
+    background:linear-gradient(180deg,#fff,#f8fbff);
+  }
+  .kpi .label{font-size:11px; font-weight:1000; color:var(--muted)}
+  .kpi .value{font-size:18px; font-weight:1100; margin-top:6px}
+  .kpi .sub{font-size:11px; color:var(--muted); margin-top:3px}
+
+  .tabs{display:flex; gap:8px; flex-wrap:wrap}
+  .tab{
+    border:1px solid var(--stroke);
+    background:linear-gradient(180deg,#fff,#f8fbff);
+    padding:8px 12px; border-radius:999px;
+    font-weight:1000; cursor:pointer;
+  }
+  .tab.active{
+    background:linear-gradient(90deg,#00c2ff,#22c55e);
+    border-color:transparent;
+  }
+
+  table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    overflow:hidden;
+    border:1px solid var(--stroke);
+    border-radius:16px;
+  }
+  thead th{
+    text-align:left;
+    font-size:11px;
+    padding:10px 10px;
+    background:linear-gradient(180deg,#ffffff,#f4f8ff);
+    border-bottom:1px solid var(--stroke);
+    position:sticky; top:0; z-index:2;
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:10px 10px;
+    font-size:12px;
+    border-bottom:1px solid rgba(15,23,42,.08);
+    vertical-align:top;
+  }
+  tbody tr:hover{background:rgba(11,87,208,.05)}
+  .badge{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:1100;
+    border:1px solid var(--stroke);
+    background:linear-gradient(180deg,#fff,#f8fbff);
+  }
+  .right{display:flex; gap:8px; align-items:center; justify-content:flex-end; flex-wrap:wrap}
+  .link{color:var(--blue); font-weight:1000; text-decoration:none}
+  .link:hover{text-decoration:underline}
+  .tiny{font-size:11px}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <div class="topRow">
+      <div class="brand">
+        <div class="dot" aria-hidden="true"></div>
+        <div>
+          <h1>CRM Reporting Appels</h1>
+          <p class="tiny">Import export  dédoublonnage  questionnaire  stats jour/semaine/mois  export Excel.</p>
+        </div>
+      </div>
+
+      <span class="pill" id="pillLoaded"><b></b> <span id="loadedLabel">Aucun fichier importé</span></span>
+      <button class="btn primary" id="btnPick">Importer export</button>
+      <button class="btn" id="btnInject" disabled>Injecter (ajouter) un autre export</button>
+      <button class="btn" id="btnExport" disabled>Exporter Excel</button>
+      <button class="btn danger" id="btnReset" disabled>Réinitialiser</button>
+
+      <input id="fileInput" type="file" accept=".txt,.tsv,.csv" style="display:none" />
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="grid">
+
+    <div class="card span-12">
+      <div class="cardBody">
+        <div class="note">
+     
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card span-12">
+      <div class="cardHead">
+        <h2>Filtres + Calendrier</h2>
+        <div class="right">
+          <span class="badge" id="rowsLabel">0 lignes</span>
+          <span class="badge" id="rowsFilteredLabel">0 filtrées</span>
+        </div>
+      </div>
+      <div class="cardBody">
+        <div class="filters">
+          <div class="field" style="min-width:240px">
+            <label>Recherche (nom, tél, ville, email, commentaire…)</label>
+            <input id="q" placeholder="ex: 689..., REPONDEUR, jessy, besancon..." />
+          </div>
+
+          <div class="field">
+            <label>Agent (user)</label>
+            <select id="agent"></select>
+          </div>
+
+          <div class="field">
+            <label>Statut (status_name)</label>
+            <select id="status"></select>
+          </div>
+
+          <div class="field">
+            <label>Date début</label>
+            <input id="dateFrom" type="date" />
+          </div>
+
+          <div class="field">
+            <label>Date fin</label>
+            <input id="dateTo" type="date" />
+          </div>
+
+          <div class="field">
+            <label>Durée min (sec)</label>
+            <input id="minSec" type="number" min="0" value="0" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="card span-12">
+      <div class="cardHead">
+        <h2>Indicateurs clés (selon filtres)</h2>
+        <div class="muted" id="rangeLabel">—</div>
+      </div>
+      <div class="cardBody">
+        <div class="kpis" id="kpis"></div>
+      </div>
+    </div>
+
+    <!-- Graphs -->
+    <div class="card span-6">
+      <div class="cardHead"><h2>Appels par statut</h2><div class="muted">Top 10</div></div>
+      <div class="cardBody"><canvas id="chartStatus" height="140"></canvas></div>
+    </div>
+
+    <div class="card span-6">
+      <div class="cardHead"><h2>Appels par agent</h2><div class="muted">Top 12</div></div>
+      <div class="cardBody"><canvas id="chartAgents" height="140"></canvas></div>
+    </div>
+
+    <!-- Stats Jour/Semaine/Mois -->
+    <div class="card span-12">
+      <div class="cardHead">
+        <h2>Statistiques par agent & statut</h2>
+        <div class="tabs">
+          <button class="tab active" id="tabDay">Jour</button>
+          <button class="tab" id="tabWeek">Semaine</button>
+          <button class="tab" id="tabMonth">Mois</button>
+        </div>
+      </div>
+      <div class="cardBody">
+        <div class="muted" style="margin-bottom:10px">
+          Tableau pivot : lignes = agents, colonnes = statuts, valeurs = nombre d’appels (selon filtres + calendrier).
+        </div>
+
+        <div style="max-height:420px; overflow:auto;">
+          <table>
+            <thead id="pivotHead"></thead>
+            <tbody id="pivotBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tableau CRM -->
+    <div class="card span-12">
+      <div class="cardHead">
+        <h2>CRM — Liste + Questionnaire</h2>
+        <div class="right">
+          <span class="muted tiny">Les champs “Questionnaire / Réponse / Autres infos” sont éditables et sauvegardés dans ce navigateur.</span>
+        </div>
+      </div>
+
+      <div class="cardBody" style="max-height:560px; overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Agent</th>
+              <th>Tél</th>
+              <th>Prénom</th>
+              <th>Nom</th>
+              <th>Ville</th>
+              <th>Email</th>
+              <th>Statut</th>
+              <th>Durée</th>
+              <th>Enreg.</th>
+              <th>Questionnaire</th>
+              <th>Réponse</th>
+              <th>Autres infos</th>
+              <th>Prochaine action</th>
+              <th>Rappel (date/heure)</th>
+              <th>Qualif</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="16" class="muted">Aucune donnée. Importez un fichier.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+/* =========================
+   CONFIG — Champs à EXCLURE
+   ========================= */
+const EXCLUDE_FIELDS = new Set([
+  "country_code", "middle_initial", "phone_code", "phone_number",
+  "full_name", "title", "gender",
+  "security_phrase", "user_group",
+  "list_description", "list_name",
+  "owner", "rank", "alt_dial",
+  "date_of_birth",
+  "address2", "address3",
+  "province"
+]);
+
+/* =========================
+   Champs manuels (CRM)
+   ========================= */
+const MANUAL_FIELDS = [
+  "q_questionnaire",
+  "q_reponse",
+  "q_autres_infos",
+  "q_prochaine_action",
+  "q_rappel_datetime",
+  "q_qualification"
+];
+
+const STORAGE_KEY = "CRM_REPORTING_MANUAL_V1";
+
+/* =========================
+   Helpers
+   ========================= */
+const $ = (id)=>document.getElementById(id);
+function safeStr(v){ return (v ?? "").toString().trim(); }
+function toInt(v){ const n = parseInt(v,10); return Number.isFinite(n) ? n : 0; }
+
+function escapeHtml(s){
+  return safeStr(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function detectDelimiter(headerLine){
+  if(headerLine.includes("\t")) return "\t";
+  if(headerLine.includes(";")) return ";";
+  return ",";
+}
+function splitLine(line, delim){ return line.split(delim); }
+
+function parseDateTime(s){
+  const t = safeStr(s);
+  if(!t) return null;
+  const parts = t.split(" ");
+  if(parts.length < 2) return null;
+  const [Y,M,D] = parts[0].split("-").map(x=>parseInt(x,10));
+  const [h,m,sec] = parts[1].split(":").map(x=>parseInt(x,10));
+  if(!Y||!M||!D) return null;
+  return new Date(Y, (M-1), D, h||0, m||0, sec||0);
+}
+function fmtDate(d){
+  if(!d) return "";
+  const pad=(n)=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+function fmtHMS(sec){
+  sec = Math.max(0, toInt(sec));
+  const h = Math.floor(sec/3600);
+  const m = Math.floor((sec%3600)/60);
+  const s = sec%60;
+  const pad=(n)=>String(n).padStart(2,"0");
+  return (h>0) ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+function uniq(arr){ return Array.from(new Set(arr)); }
+
+/* =========================
+   Déduplication (doublons)
+   clé = phone_number_dialed|call_date|status_name
+   ========================= */
+function buildDedupKey(r){
+  return [safeStr(r.phone_number_dialed), safeStr(r.call_date), safeStr(r.status_name)].join("|");
+}
+
+/* =========================
+   Storage (champs manuels)
+   ========================= */
+function loadManualStore(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){
+    return {};
+  }
+}
+function saveManualStore(store){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+}
+let manualStore = loadManualStore();
+
+/* =========================
+   Parse fichier  rows
+   - Exclut les champs demandés
+   ========================= */
+function parseTextToRows(text){
+  const lines = text.replace(/\r/g,"").split("\n").filter(l=>l.trim().length>0);
+  if(lines.length < 2) return [];
+
+  const delim = detectDelimiter(lines[0]);
+  const headers = splitLine(lines[0], delim).map(h=>safeStr(h));
+
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    const cols = splitLine(lines[i], delim);
+    const obj = {};
+    headers.forEach((h, idx)=>{
+      if(!h) return;
+      if(EXCLUDE_FIELDS.has(h)) return;         //  on ignore ces champs
+      obj[h] = cols[idx] ?? "";
+    });
+
+    // Normalise date
+    obj.__dt = parseDateTime(obj.call_date);
+
+    // Ajoute champs manuels (si pas existants)
+    const key = buildDedupKey(obj);
+    const saved = manualStore[key] || {};
+    for(const f of MANUAL_FIELDS){
+      obj[f] = safeStr(saved[f] ?? "");
+    }
+
+    rows.push(obj);
+  }
+  return rows;
+}
+
+/* =========================
+   State
+   ========================= */
+let rawRows = [];        // toutes les lignes cumulées
+let dedupKeys = new Set();
+let filtered = [];
+let charts = { status:null, agents:null };
+
+/* =========================
+   Charts
+   ========================= */
+function destroyCharts(){
+  Object.values(charts).forEach(ch=>{ if(ch) ch.destroy(); });
+  charts = { status:null, agents:null };
+}
+function buildBarChart(ctx, labels, data, title){
+  return new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: title, data }] },
+    options: {
+      responsive:true,
+      plugins:{ legend:{display:false}, tooltip:{enabled:true} },
+      scales: {
+        x:{ ticks:{ font:{weight:'800'} } },
+        y:{ beginAtZero:true, ticks:{ precision:0, font:{weight:'800'} } }
+      }
+    }
+  });
+}
+
+/* =========================
+   KPIs
+   ========================= */
+function countBy(rows, key){
+  const map = new Map();
+  for(const r of rows){
+    const k = safeStr(r[key]) || "—";
+    map.set(k, (map.get(k)||0)+1);
+  }
+  return map;
+}
+function sumBy(rows, key){
+  let s = 0;
+  for(const r of rows) s += toInt(r[key]);
+  return s;
+}
+function minMaxDates(rows){
+  let min=null, max=null;
+  for(const r of rows){
+    const d = r.__dt;
+    if(!d) continue;
+    if(!min || d<min) min=d;
+    if(!max || d>max) max=d;
+  }
+  return {min,max};
+}
+function computeKPIs(rows){
+  const total = rows.length;
+  const totalSec = sumBy(rows, "length_in_sec");
+  const avgSec = total ? Math.round(totalSec/total) : 0;
+  const users = uniq(rows.map(r=>safeStr(r.user)).filter(Boolean));
+  const uniqUsers = users.length;
+  const statusCounts = countBy(rows, "status_name");
+  const rep = statusCounts.get("REPONDEUR") || 0;
+  const rel = statusCounts.get("RELANCE") || 0;
+  const pi  = statusCounts.get("PAS INETERESSE") || 0;
+  const incall = statusCounts.get("Lead Being Called") || 0;
+
+  const {min,max} = minMaxDates(rows);
+  let callsPerHour = 0;
+  if(min && max && max>min){
+    const hours = (max - min) / 3600000;
+    callsPerHour = hours>0 ? (total / hours) : 0;
+  }
+  return { total, totalSec, avgSec, uniqUsers, rep, rel, pi, incall, callsPerHour, min, max };
+}
+function renderKPIs(k){
+  const items = [
+    {label:"Total appels", value:k.total, sub:"sur la sélection"},
+    {label:"Temps total", value:fmtHMS(k.totalSec), sub:"somme durées"},
+    {label:"Durée moyenne", value:fmtHMS(k.avgSec), sub:"par appel"},
+    {label:"Agents actifs", value:k.uniqUsers, sub:"users distinct"},
+    {label:"REPONDEUR", value:k.rep, sub:"status_name"},
+    {label:"RELANCE", value:k.rel, sub:"status_name"},
+    {label:"PAS INETERESSE", value:k.pi, sub:"status_name"},
+    {label:"Lead Being Called", value:k.incall, sub:"status_name"},
+    {label:"Appels / heure", value:(k.callsPerHour ? k.callsPerHour.toFixed(1) : "0.0"), sub:"sur la plage"},
+  ];
+  $("kpis").innerHTML = items.map(i=>`
+    <div class="kpi">
+      <div class="label">${escapeHtml(i.label)}</div>
+      <div class="value">${escapeHtml(String(i.value))}</div>
+      <div class="sub">${escapeHtml(i.sub)}</div>
+    </div>
+  `).join("");
+  if(k.min && k.max){
+    $("rangeLabel").textContent = `Du ${k.min.toLocaleString()} au ${k.max.toLocaleString()}`;
+  }else{
+    $("rangeLabel").textContent = "—";
+  }
+}
+function renderCharts(rows){
+  destroyCharts();
+
+  const stMap = countBy(rows, "status_name");
+  const stArr = Array.from(stMap.entries()).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  charts.status = buildBarChart($("chartStatus"), stArr.map(x=>x[0]), stArr.map(x=>x[1]), "Appels");
+
+  const agMap = countBy(rows, "user");
+  const agArr = Array.from(agMap.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  charts.agents = buildBarChart($("chartAgents"), agArr.map(x=>x[0]||"—"), agArr.map(x=>x[1]), "Appels");
+}
+
+/* =========================
+   Pivot jour / semaine / mois
+   ========================= */
+function isoWeekKey(d){
+  // ISO week key like 2026-W06
+  const t = new Date(d.getTime());
+  t.setHours(0,0,0,0);
+  t.setDate(t.getDate() + 3 - (t.getDay()+6)%7);
+  const week1 = new Date(t.getFullYear(),0,4);
+  const week = 1 + Math.round(((t-week1)/86400000 - 3 + (week1.getDay()+6)%7)/7);
+  return `${t.getFullYear()}-W${String(week).padStart(2,"0")}`;
+}
+function periodKey(d, mode){
+  if(!d) return "—";
+  if(mode==="day"){
+    const pad=(n)=>String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+  if(mode==="week") return isoWeekKey(d);
+  // month
+  const pad=(n)=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+}
+
+let pivotMode = "day"; // day|week|month
+function setPivotMode(mode){
+  pivotMode = mode;
+  $("tabDay").classList.toggle("active", mode==="day");
+  $("tabWeek").classList.toggle("active", mode==="week");
+  $("tabMonth").classList.toggle("active", mode==="month");
+  renderPivot(filtered);
+}
+
+function renderPivot(rows){
+  // On fait pivot pour la période courante (jour/semaine/mois) + agents/statuts
+  const statuses = uniq(rows.map(r=>safeStr(r.status_name)).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
+  const agents = uniq(rows.map(r=>safeStr(r.user)).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
+
+  // Regroupe d’abord par période
+  // Pour simplifier : on fait pivot sur la période la plus récente dans la sélection
+  // (si tu veux choisir une période spécifique, on l’ajoute après)
+  const perMap = new Map();
+  for(const r of rows){
+    const d = r.__dt;
+    if(!d) continue;
+    const pk = periodKey(d, pivotMode);
+    if(!perMap.has(pk)) perMap.set(pk, []);
+    perMap.get(pk).push(r);
+  }
+
+  const periods = Array.from(perMap.keys()).sort();
+  const lastPeriod = periods.length ? periods[periods.length-1] : null;
+  const base = lastPeriod ? perMap.get(lastPeriod) : rows;
+
+  // Matrice agent x statut
+  const matrix = new Map(); // agent -> Map(status->count)
+  for(const a of agents){
+    matrix.set(a, new Map());
+    for(const s of statuses) matrix.get(a).set(s, 0);
+  }
+
+  for(const r of base){
+    const a = safeStr(r.user);
+    const s = safeStr(r.status_name);
+    if(!a || !s) continue;
+    if(!matrix.has(a)){
+      matrix.set(a, new Map());
+      for(const ss of statuses) matrix.get(a).set(ss, 0);
+    }
+    if(!matrix.get(a).has(s)) matrix.get(a).set(s, 0);
+    matrix.get(a).set(s, (matrix.get(a).get(s)||0)+1);
+  }
+
+  // Head
+  const head = [];
+  head.push(`<tr><th>Période</th><th>Agent</th>`);
+  for(const s of statuses) head.push(`<th>${escapeHtml(s)}</th>`);
+  head.push(`<th>Total</th></tr>`);
+  $("pivotHead").innerHTML = head.join("");
+
+  // Body
+  if(!agents.length){
+    $("pivotBody").innerHTML = `<tr><td colspan="${3+statuses.length}" class="muted">Aucune donnée.</td></tr>`;
+    return;
+  }
+
+  const body = [];
+  const periodLabel = lastPeriod ? lastPeriod : "—";
+
+  // Totaux colonnes
+  const colTotals = new Map();
+  for(const s of statuses) colTotals.set(s, 0);
+  let grandTotal = 0;
+
+  for(const a of agents){
+    const m = matrix.get(a) || new Map();
+    let rowTotal = 0;
+    const tds = [];
+    tds.push(`<td>${escapeHtml(periodLabel)}</td>`);
+    tds.push(`<td><span class="badge">${escapeHtml(a)}</span></td>`);
+    for(const s of statuses){
+      const c = m.get(s) || 0;
+      rowTotal += c;
+      colTotals.set(s, (colTotals.get(s)||0) + c);
+      tds.push(`<td>${c}</td>`);
+    }
+    grandTotal += rowTotal;
+    tds.push(`<td><b>${rowTotal}</b></td>`);
+    body.push(`<tr>${tds.join("")}</tr>`);
+  }
+
+  // Ligne total
+  const totalTds = [];
+  totalTds.push(`<td><b>${escapeHtml(periodLabel)}</b></td>`);
+  totalTds.push(`<td><b>TOTAL</b></td>`);
+  for(const s of statuses){
+    totalTds.push(`<td><b>${colTotals.get(s)||0}</b></td>`);
+  }
+  totalTds.push(`<td><b>${grandTotal}</b></td>`);
+  body.push(`<tr>${totalTds.join("")}</tr>`);
+
+  $("pivotBody").innerHTML = body.join("");
+}
+
+/* =========================
+   Table CRM + Edition
+   ========================= */
+function renderTable(rows){
+  const tb = $("tbody");
+  if(!rows.length){
+    tb.innerHTML = `<tr><td colspan="16" class="muted">Aucune ligne avec ces filtres.</td></tr>`;
+    return;
+  }
+
+  const max = 300;
+  const slice = rows.slice(0, max);
+
+  tb.innerHTML = slice.map(r=>{
+    const dt = r.__dt ? fmtDate(r.__dt) : safeStr(r.call_date);
+    const agent = safeStr(r.user);
+    const phone = safeStr(r.phone_number_dialed);
+    const first = safeStr(r.first_name);
+    const last = safeStr(r.last_name);
+    const city = safeStr(r.city);
+    const email = safeStr(r.email);
+    const status = safeStr(r.status_name);
+    const dur = fmtHMS(r.length_in_sec);
+    const rec = safeStr(r.recording_location);
+
+    const key = buildDedupKey(r);
+
+    const recHtml = rec
+      ? `<a class="link" href="${escapeHtml(rec)}" target="_blank" rel="noopener">Écouter</a>`
+      : `<span class="muted">—</span>`;
+
+    // champs manuels
+    const q1 = escapeHtml(r.q_questionnaire || "");
+    const q2 = escapeHtml(r.q_reponse || "");
+    const q3 = escapeHtml(r.q_autres_infos || "");
+    const q4 = escapeHtml(r.q_prochaine_action || "");
+    const q5 = escapeHtml(r.q_rappel_datetime || "");
+    const q6 = escapeHtml(r.q_qualification || "");
+
+    return `
+      <tr data-key="${escapeHtml(key)}">
+        <td>${escapeHtml(dt)}</td>
+        <td><span class="badge">${escapeHtml(agent||"—")}</span></td>
+        <td>${escapeHtml(phone||"—")}</td>
+        <td>${escapeHtml(first||"—")}</td>
+        <td>${escapeHtml(last||"—")}</td>
+        <td>${escapeHtml(city||"—")}</td>
+        <td>${escapeHtml(email||"—")}</td>
+        <td><span class="badge">${escapeHtml(status||"—")}</span></td>
+        <td>${escapeHtml(dur)}</td>
+        <td>${recHtml}</td>
+
+        <td><textarea class="manual" data-field="q_questionnaire" placeholder="Questionnaire...">${q1}</textarea></td>
+        <td><textarea class="manual" data-field="q_reponse" placeholder="Réponse...">${q2}</textarea></td>
+        <td><textarea class="manual" data-field="q_autres_infos" placeholder="Autres infos...">${q3}</textarea></td>
+        <td><input class="manual" data-field="q_prochaine_action" placeholder="Prochaine action..." value="${q4}"></td>
+        <td><input class="manual" data-field="q_rappel_datetime" type="datetime-local" value="${q5}"></td>
+        <td><input class="manual" data-field="q_qualification" placeholder="Qualif..." value="${q6}"></td>
+      </tr>
+    `;
+  }).join("");
+
+  if(rows.length > max){
+    tb.insertAdjacentHTML("beforeend", `
+      <tr><td colspan="16" class="muted">Affichage limité à ${max} lignes (sur ${rows.length}). Export Excel pour tout récupérer.</td></tr>
+    `);
+  }
+
+  // écoute edition
+  tb.querySelectorAll(".manual").forEach(el=>{
+    el.addEventListener("input", (e)=>{
+      const tr = e.target.closest("tr");
+      const key = tr?.getAttribute("data-key");
+      const field = e.target.getAttribute("data-field");
+      if(!key || !field) return;
+
+      manualStore[key] = manualStore[key] || {};
+      manualStore[key][field] = e.target.value;
+
+      saveManualStore(manualStore);
+
+      // mise à jour dans rawRows aussi (pour export)
+      const row = rawRows.find(rr => buildDedupKey(rr) === key);
+      if(row) row[field] = e.target.value;
+    });
+  });
+}
+
+/* =========================
+   Filtres
+   ========================= */
+function fillSelect(selectEl, values, allLabel){
+  const opts = [`<option value="">${escapeHtml(allLabel)}</option>`]
+    .concat(values.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`));
+  selectEl.innerHTML = opts.join("");
+}
+
+function applyFilters(){
+  const q = safeStr($("q").value).toLowerCase();
+  const agent = safeStr($("agent").value);
+  const status = safeStr($("status").value);
+  const dateFrom = $("dateFrom").value ? new Date($("dateFrom").value + "T00:00:00") : null;
+  const dateTo = $("dateTo").value ? new Date($("dateTo").value + "T23:59:59") : null;
+  const minSec = toInt($("minSec").value);
+
+  filtered = rawRows.filter(r=>{
+    if(agent && safeStr(r.user) !== agent) return false;
+    if(status && safeStr(r.status_name) !== status) return false;
+    if(minSec && toInt(r.length_in_sec) < minSec) return false;
+
+    const d = r.__dt;
+    if(dateFrom && d && d < dateFrom) return false;
+    if(dateTo && d && d > dateTo) return false;
+
+    if(q){
+      const hay = [
+        r.call_date, r.phone_number_dialed, r.status_name, r.user,
+        r.first_name, r.last_name, r.city, r.state, r.postal_code,
+        r.email, r.comments, r.address1,
+        r.q_questionnaire, r.q_reponse, r.q_autres_infos, r.q_prochaine_action, r.q_qualification
+      ].map(safeStr).join(" ").toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  $("rowsFilteredLabel").textContent = `${filtered.length} filtrées`;
+
+  const k = computeKPIs(filtered);
+  renderKPIs(k);
+  renderCharts(filtered);
+  renderPivot(filtered);
+  renderTable(filtered);
+
+  $("btnExport").disabled = !rawRows.length;
+}
+
+/* =========================
+   Chargement / Injection
+   ========================= */
+function afterLoad(name, rows, mode){
+  // mode = "replace" (import) ou "append" (inject)
+  let inserted = 0;
+
+  if(mode === "replace"){
+    rawRows = [];
+    dedupKeys = new Set();
+  }
+
+  for(const r of rows){
+    const key = buildDedupKey(r);
+    if(dedupKeys.has(key)) continue; //  doublon ignoré
+    dedupKeys.add(key);
+    rawRows.push(r);
+    inserted++;
+  }
+
+  $("loadedLabel").textContent = `${name} — ${rawRows.length} lignes ( +${inserted} )`;
+  $("rowsLabel").textContent = `${rawRows.length} lignes`;
+  $("rowsFilteredLabel").textContent = `${rawRows.length} filtrées`;
+
+  $("btnReset").disabled = !rawRows.length;
+  $("btnExport").disabled = !rawRows.length;
+  $("btnInject").disabled = !rawRows.length;
+
+  // selects
+  const agents = uniq(rawRows.map(r=>safeStr(r.user)).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
+  const statuses = uniq(rawRows.map(r=>safeStr(r.status_name)).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
+  fillSelect($("agent"), agents, "Tous les agents");
+  fillSelect($("status"), statuses, "Tous les statuts");
+
+  // dates auto si vide
+  const mm = minMaxDates(rawRows);
+  if(mm.min && mm.max){
+    const toISO = (d)=> {
+      const pad=(n)=>String(n).padStart(2,"0");
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    };
+    if(!$("dateFrom").value) $("dateFrom").value = toISO(mm.min);
+    if(!$("dateTo").value) $("dateTo").value = toISO(mm.max);
+  }
+
+  applyFilters();
+}
+
+/* =========================
+   Export Excel (avec champs manuels)
+   ========================= */
+function exportExcel(){
+  if(!rawRows.length) return;
+
+  const out = rawRows.map(r=>{
+    const obj = {};
+
+    // export : champs utiles (et on garde comments + adresse1 + etc.)
+    // (les champs exclus sont déjà absents)
+    const keepOrder = [
+      "call_date","user","status","status_name","phone_number_dialed",
+      "campaign_id","source_id","list_id","vendor_lead_code",
+      "first_name","last_name","address1","city","state","postal_code",
+      "alt_phone","email","comments",
+      "length_in_sec","recording_location",
+      "lead_id"
+    ];
+
+    // Ajoute ceux qui existent
+    for(const k of keepOrder){
+      if(r[k] !== undefined) obj[k] = r[k];
+    }
+
+    // Ajoute tout le reste non listé (pour ne rien perdre côté production)
+    for(const k of Object.keys(r)){
+      if(k.startsWith("__")) continue;
+      if(MANUAL_FIELDS.includes(k)) continue;
+      if(obj[k] !== undefined) continue;
+      obj[k] = r[k];
+    }
+
+    // Champs manuels à la fin
+    obj["questionnaire"] = r.q_questionnaire || "";
+    obj["reponse"] = r.q_reponse || "";
+    obj["autres_infos"] = r.q_autres_infos || "";
+    obj["prochaine_action"] = r.q_prochaine_action || "";
+    obj["rappel_datetime"] = r.q_rappel_datetime || "";
+    obj["qualification"] = r.q_qualification || "";
+
+    // duration lisible
+    obj["duration"] = fmtHMS(r.length_in_sec);
+
+    return obj;
+  });
+
+  const ws = XLSX.utils.json_to_sheet(out);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "crm_reporting");
+
+  // largeur auto
+  const cols = Object.keys(out[0] || {});
+  ws["!cols"] = cols.map(c=>{
+    let max = c.length;
+    for(const row of out){
+      const v = (row[c] ?? "").toString();
+      if(v.length > max) max = v.length;
+    }
+    return { wch: Math.min(44, Math.max(10, max+2)) };
+  });
+
+  const now = new Date();
+  const pad=(n)=>String(n).padStart(2,"0");
+  const fname = `crm_reporting_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.xlsx`;
+  XLSX.writeFile(wb, fname);
+}
+
+/* =========================
+   Events UI
+   ========================= */
+$("btnPick").addEventListener("click", ()=>{
+  $("fileInput").dataset.mode = "replace";
+  $("fileInput").click();
+});
+$("btnInject").addEventListener("click", ()=>{
+  $("fileInput").dataset.mode = "append";
+  $("fileInput").click();
+});
+
+$("fileInput").addEventListener("change", async (e)=>{
+  const f = e.target.files?.[0];
+  if(!f) return;
+  const mode = e.target.dataset.mode || "replace";
+  const text = await f.text();
+  const rows = parseTextToRows(text);
+  if(!rows.length){
+    alert("Fichier vide ou format non reconnu. Essayez TSV (tabulations) ou CSV.");
+    return;
+  }
+  afterLoad(f.name, rows, mode);
+  e.target.value = "";
+});
+
+$("btnExport").addEventListener("click", exportExcel);
+
+$("btnReset").addEventListener("click", ()=>{
+  rawRows = [];
+  filtered = [];
+  dedupKeys = new Set();
+  destroyCharts();
+  $("loadedLabel").textContent = "Aucun fichier importé";
+  $("rowsLabel").textContent = "0 lignes";
+  $("rowsFilteredLabel").textContent = "0 filtrées";
+  $("kpis").innerHTML = "";
+  $("rangeLabel").textContent = "—";
+  $("tbody").innerHTML = `<tr><td colspan="16" class="muted">Aucune donnée. Importez un fichier.</td></tr>`;
+  $("pivotHead").innerHTML = "";
+  $("pivotBody").innerHTML = "";
+  fillSelect($("agent"), [], "Tous les agents");
+  fillSelect($("status"), [], "Tous les statuts");
+  ["q","dateFrom","dateTo","minSec"].forEach(id=>$(id).value = (id==="minSec" ? "0" : ""));
+  $("btnExport").disabled = true;
+  $("btnReset").disabled = true;
+  $("btnInject").disabled = true;
+});
+
+["q","agent","status","dateFrom","dateTo","minSec"].forEach(id=>{
+  $(id).addEventListener("input", ()=>{ if(rawRows.length) applyFilters(); });
+  $(id).addEventListener("change", ()=>{ if(rawRows.length) applyFilters(); });
+});
+
+// Tabs pivot
+$("tabDay").addEventListener("click", ()=>setPivotMode("day"));
+$("tabWeek").addEventListener("click", ()=>setPivotMode("week"));
+$("tabMonth").addEventListener("click", ()=>setPivotMode("month"));
+
+// init selects
+fillSelect($("agent"), [], "Tous les agents");
+fillSelect($("status"), [], "Tous les statuts");
+</script>
+</body>
+</html>
