@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>CRM Reporting Appels ó Import + Stats + Questionnaire</title>
+<title>CRM Reporting Appels ‚Äî Import + Stats + Questionnaire</title>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -183,15 +183,15 @@
         <div class="dot" aria-hidden="true"></div>
         <div>
           <h1>CRM Reporting Appels</h1>
-          <p class="tiny">Import export  dÈdoublonnage  questionnaire  stats jour/semaine/mois  export Excel.</p>
+          <p class="tiny">Import export  d√©doublonnage  questionnaire  stats jour/semaine/mois  export Excel.</p>
         </div>
       </div>
 
-      <span class="pill" id="pillLoaded"><b></b> <span id="loadedLabel">Aucun fichier importÈ</span></span>
+      <span class="pill" id="pillLoaded"><b></b> <span id="loadedLabel">Aucun fichier import√©</span></span>
       <button class="btn primary" id="btnPick">Importer export</button>
       <button class="btn" id="btnInject" disabled>Injecter (ajouter) un autre export</button>
       <button class="btn" id="btnExport" disabled>Exporter Excel</button>
-      <button class="btn danger" id="btnReset" disabled>RÈinitialiser</button>
+      <button class="btn danger" id="btnReset" disabled>R√©initialiser</button>
 
       <input id="fileInput" type="file" accept=".txt,.tsv,.csv" style="display:none" />
     </div>
@@ -215,13 +215,13 @@
         <h2>Filtres + Calendrier</h2>
         <div class="right">
           <span class="badge" id="rowsLabel">0 lignes</span>
-          <span class="badge" id="rowsFilteredLabel">0 filtrÈes</span>
+          <span class="badge" id="rowsFilteredLabel">0 filtr√©es</span>
         </div>
       </div>
       <div class="cardBody">
         <div class="filters">
           <div class="field" style="min-width:240px">
-            <label>Recherche (nom, tÈl, ville, email, commentaireÖ)</label>
+            <label>Recherche (nom, t√©l, ville, email, commentaire‚Ä¶)</label>
             <input id="q" placeholder="ex: 689..., REPONDEUR, jessy, besancon..." />
           </div>
 
@@ -236,7 +236,7 @@
           </div>
 
           <div class="field">
-            <label>Date dÈbut</label>
+            <label>Date d√©but</label>
             <input id="dateFrom" type="date" />
           </div>
 
@@ -246,7 +246,7 @@
           </div>
 
           <div class="field">
-            <label>DurÈe min (sec)</label>
+            <label>Dur√©e min (sec)</label>
             <input id="minSec" type="number" min="0" value="0" />
           </div>
         </div>
@@ -256,8 +256,8 @@
     <!-- KPIs -->
     <div class="card span-12">
       <div class="cardHead">
-        <h2>Indicateurs clÈs (selon filtres)</h2>
-        <div class="muted" id="rangeLabel">ó</div>
+        <h2>Indicateurs cl√©s (selon filtres)</h2>
+        <div class="muted" id="rangeLabel">‚Äî</div>
       </div>
       <div class="cardBody">
         <div class="kpis" id="kpis"></div>
@@ -287,7 +287,7 @@
       </div>
       <div class="cardBody">
         <div class="muted" style="margin-bottom:10px">
-          Tableau pivot : lignes = agents, colonnes = statuts, valeurs = nombre díappels (selon filtres + calendrier).
+          Tableau pivot : lignes = agents, colonnes = statuts, valeurs = nombre d‚Äôappels (selon filtres + calendrier).
         </div>
 
         <div style="max-height:420px; overflow:auto;">
@@ -302,9 +302,9 @@
     <!-- Tableau CRM -->
     <div class="card span-12">
       <div class="cardHead">
-        <h2>CRM ó Liste + Questionnaire</h2>
+        <h2>CRM ‚Äî Liste + Questionnaire</h2>
         <div class="right">
-          <span class="muted tiny">Les champs ìQuestionnaire / RÈponse / Autres infosî sont Èditables et sauvegardÈs dans ce navigateur.</span>
+          <span class="muted tiny">Les champs ‚ÄúQuestionnaire / R√©ponse / Autres infos‚Äù sont √©ditables et sauvegard√©s dans ce navigateur.</span>
         </div>
       </div>
 
@@ -314,16 +314,16 @@
             <tr>
               <th>Date</th>
               <th>Agent</th>
-              <th>TÈl</th>
-              <th>PrÈnom</th>
+              <th>T√©l</th>
+              <th>Pr√©nom</th>
               <th>Nom</th>
               <th>Ville</th>
               <th>Email</th>
               <th>Statut</th>
-              <th>DurÈe</th>
+              <th>Dur√©e</th>
               <th>Enreg.</th>
               <th>Questionnaire</th>
-              <th>RÈponse</th>
+              <th>R√©ponse</th>
               <th>Autres infos</th>
               <th>Prochaine action</th>
               <th>Rappel (date/heure)</th>
@@ -331,7 +331,7 @@
             </tr>
           </thead>
           <tbody id="tbody">
-            <tr><td colspan="16" class="muted">Aucune donnÈe. Importez un fichier.</td></tr>
+            <tr><td colspan="16" class="muted">Aucune donn√©e. Importez un fichier.</td></tr>
           </tbody>
         </table>
       </div>
@@ -342,7 +342,7 @@
 
 <script>
 /* =========================
-   CONFIG ó Champs ‡ EXCLURE
+   CONFIG ‚Äî Champs √† EXCLURE
    ========================= */
 const EXCLUDE_FIELDS = new Set([
   "country_code", "middle_initial", "phone_code", "phone_number",
@@ -418,8 +418,8 @@ function fmtHMS(sec){
 function uniq(arr){ return Array.from(new Set(arr)); }
 
 /* =========================
-   DÈduplication (doublons)
-   clÈ = phone_number_dialed|call_date|status_name
+   D√©duplication (doublons)
+   cl√© = phone_number_dialed|call_date|status_name
    ========================= */
 function buildDedupKey(r){
   return [safeStr(r.phone_number_dialed), safeStr(r.call_date), safeStr(r.status_name)].join("|");
@@ -443,7 +443,7 @@ let manualStore = loadManualStore();
 
 /* =========================
    Parse fichier  rows
-   - Exclut les champs demandÈs
+   - Exclut les champs demand√©s
    ========================= */
 function parseTextToRows(text){
   const lines = text.replace(/\r/g,"").split("\n").filter(l=>l.trim().length>0);
@@ -480,7 +480,7 @@ function parseTextToRows(text){
 /* =========================
    State
    ========================= */
-let rawRows = [];        // toutes les lignes cumulÈes
+let rawRows = [];        // toutes les lignes cumul√©es
 let dedupKeys = new Set();
 let filtered = [];
 let charts = { status:null, agents:null };
@@ -513,7 +513,7 @@ function buildBarChart(ctx, labels, data, title){
 function countBy(rows, key){
   const map = new Map();
   for(const r of rows){
-    const k = safeStr(r[key]) || "ó";
+    const k = safeStr(r[key]) || "‚Äî";
     map.set(k, (map.get(k)||0)+1);
   }
   return map;
@@ -555,9 +555,9 @@ function computeKPIs(rows){
 }
 function renderKPIs(k){
   const items = [
-    {label:"Total appels", value:k.total, sub:"sur la sÈlection"},
-    {label:"Temps total", value:fmtHMS(k.totalSec), sub:"somme durÈes"},
-    {label:"DurÈe moyenne", value:fmtHMS(k.avgSec), sub:"par appel"},
+    {label:"Total appels", value:k.total, sub:"sur la s√©lection"},
+    {label:"Temps total", value:fmtHMS(k.totalSec), sub:"somme dur√©es"},
+    {label:"Dur√©e moyenne", value:fmtHMS(k.avgSec), sub:"par appel"},
     {label:"Agents actifs", value:k.uniqUsers, sub:"users distinct"},
     {label:"REPONDEUR", value:k.rep, sub:"status_name"},
     {label:"RELANCE", value:k.rel, sub:"status_name"},
@@ -575,7 +575,7 @@ function renderKPIs(k){
   if(k.min && k.max){
     $("rangeLabel").textContent = `Du ${k.min.toLocaleString()} au ${k.max.toLocaleString()}`;
   }else{
-    $("rangeLabel").textContent = "ó";
+    $("rangeLabel").textContent = "‚Äî";
   }
 }
 function renderCharts(rows){
@@ -587,7 +587,7 @@ function renderCharts(rows){
 
   const agMap = countBy(rows, "user");
   const agArr = Array.from(agMap.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12);
-  charts.agents = buildBarChart($("chartAgents"), agArr.map(x=>x[0]||"ó"), agArr.map(x=>x[1]), "Appels");
+  charts.agents = buildBarChart($("chartAgents"), agArr.map(x=>x[0]||"‚Äî"), agArr.map(x=>x[1]), "Appels");
 }
 
 /* =========================
@@ -603,7 +603,7 @@ function isoWeekKey(d){
   return `${t.getFullYear()}-W${String(week).padStart(2,"0")}`;
 }
 function periodKey(d, mode){
-  if(!d) return "ó";
+  if(!d) return "‚Äî";
   if(mode==="day"){
     const pad=(n)=>String(n).padStart(2,"0");
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -624,13 +624,13 @@ function setPivotMode(mode){
 }
 
 function renderPivot(rows){
-  // On fait pivot pour la pÈriode courante (jour/semaine/mois) + agents/statuts
+  // On fait pivot pour la p√©riode courante (jour/semaine/mois) + agents/statuts
   const statuses = uniq(rows.map(r=>safeStr(r.status_name)).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
   const agents = uniq(rows.map(r=>safeStr(r.user)).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
 
-  // Regroupe díabord par pÈriode
-  // Pour simplifier : on fait pivot sur la pÈriode la plus rÈcente dans la sÈlection
-  // (si tu veux choisir une pÈriode spÈcifique, on líajoute aprËs)
+  // Regroupe d‚Äôabord par p√©riode
+  // Pour simplifier : on fait pivot sur la p√©riode la plus r√©cente dans la s√©lection
+  // (si tu veux choisir une p√©riode sp√©cifique, on l‚Äôajoute apr√®s)
   const perMap = new Map();
   for(const r of rows){
     const d = r.__dt;
@@ -665,19 +665,19 @@ function renderPivot(rows){
 
   // Head
   const head = [];
-  head.push(`<tr><th>PÈriode</th><th>Agent</th>`);
+  head.push(`<tr><th>P√©riode</th><th>Agent</th>`);
   for(const s of statuses) head.push(`<th>${escapeHtml(s)}</th>`);
   head.push(`<th>Total</th></tr>`);
   $("pivotHead").innerHTML = head.join("");
 
   // Body
   if(!agents.length){
-    $("pivotBody").innerHTML = `<tr><td colspan="${3+statuses.length}" class="muted">Aucune donnÈe.</td></tr>`;
+    $("pivotBody").innerHTML = `<tr><td colspan="${3+statuses.length}" class="muted">Aucune donn√©e.</td></tr>`;
     return;
   }
 
   const body = [];
-  const periodLabel = lastPeriod ? lastPeriod : "ó";
+  const periodLabel = lastPeriod ? lastPeriod : "‚Äî";
 
   // Totaux colonnes
   const colTotals = new Map();
@@ -742,8 +742,8 @@ function renderTable(rows){
     const key = buildDedupKey(r);
 
     const recHtml = rec
-      ? `<a class="link" href="${escapeHtml(rec)}" target="_blank" rel="noopener">…couter</a>`
-      : `<span class="muted">ó</span>`;
+      ? `<a class="link" href="${escapeHtml(rec)}" target="_blank" rel="noopener">√âcouter</a>`
+      : `<span class="muted">‚Äî</span>`;
 
     // champs manuels
     const q1 = escapeHtml(r.q_questionnaire || "");
@@ -756,18 +756,18 @@ function renderTable(rows){
     return `
       <tr data-key="${escapeHtml(key)}">
         <td>${escapeHtml(dt)}</td>
-        <td><span class="badge">${escapeHtml(agent||"ó")}</span></td>
-        <td>${escapeHtml(phone||"ó")}</td>
-        <td>${escapeHtml(first||"ó")}</td>
-        <td>${escapeHtml(last||"ó")}</td>
-        <td>${escapeHtml(city||"ó")}</td>
-        <td>${escapeHtml(email||"ó")}</td>
-        <td><span class="badge">${escapeHtml(status||"ó")}</span></td>
+        <td><span class="badge">${escapeHtml(agent||"‚Äî")}</span></td>
+        <td>${escapeHtml(phone||"‚Äî")}</td>
+        <td>${escapeHtml(first||"‚Äî")}</td>
+        <td>${escapeHtml(last||"‚Äî")}</td>
+        <td>${escapeHtml(city||"‚Äî")}</td>
+        <td>${escapeHtml(email||"‚Äî")}</td>
+        <td><span class="badge">${escapeHtml(status||"‚Äî")}</span></td>
         <td>${escapeHtml(dur)}</td>
         <td>${recHtml}</td>
 
         <td><textarea class="manual" data-field="q_questionnaire" placeholder="Questionnaire...">${q1}</textarea></td>
-        <td><textarea class="manual" data-field="q_reponse" placeholder="RÈponse...">${q2}</textarea></td>
+        <td><textarea class="manual" data-field="q_reponse" placeholder="R√©ponse...">${q2}</textarea></td>
         <td><textarea class="manual" data-field="q_autres_infos" placeholder="Autres infos...">${q3}</textarea></td>
         <td><input class="manual" data-field="q_prochaine_action" placeholder="Prochaine action..." value="${q4}"></td>
         <td><input class="manual" data-field="q_rappel_datetime" type="datetime-local" value="${q5}"></td>
@@ -778,11 +778,11 @@ function renderTable(rows){
 
   if(rows.length > max){
     tb.insertAdjacentHTML("beforeend", `
-      <tr><td colspan="16" class="muted">Affichage limitÈ ‡ ${max} lignes (sur ${rows.length}). Export Excel pour tout rÈcupÈrer.</td></tr>
+      <tr><td colspan="16" class="muted">Affichage limit√© √† ${max} lignes (sur ${rows.length}). Export Excel pour tout r√©cup√©rer.</td></tr>
     `);
   }
 
-  // Ècoute edition
+  // √©coute edition
   tb.querySelectorAll(".manual").forEach(el=>{
     el.addEventListener("input", (e)=>{
       const tr = e.target.closest("tr");
@@ -795,7 +795,7 @@ function renderTable(rows){
 
       saveManualStore(manualStore);
 
-      // mise ‡ jour dans rawRows aussi (pour export)
+      // mise √† jour dans rawRows aussi (pour export)
       const row = rawRows.find(rr => buildDedupKey(rr) === key);
       if(row) row[field] = e.target.value;
     });
@@ -840,7 +840,7 @@ function applyFilters(){
     return true;
   });
 
-  $("rowsFilteredLabel").textContent = `${filtered.length} filtrÈes`;
+  $("rowsFilteredLabel").textContent = `${filtered.length} filtr√©es`;
 
   const k = computeKPIs(filtered);
   renderKPIs(k);
@@ -865,15 +865,15 @@ function afterLoad(name, rows, mode){
 
   for(const r of rows){
     const key = buildDedupKey(r);
-    if(dedupKeys.has(key)) continue; //  doublon ignorÈ
+    if(dedupKeys.has(key)) continue; //  doublon ignor√©
     dedupKeys.add(key);
     rawRows.push(r);
     inserted++;
   }
 
-  $("loadedLabel").textContent = `${name} ó ${rawRows.length} lignes ( +${inserted} )`;
+  $("loadedLabel").textContent = `${name} ‚Äî ${rawRows.length} lignes ( +${inserted} )`;
   $("rowsLabel").textContent = `${rawRows.length} lignes`;
-  $("rowsFilteredLabel").textContent = `${rawRows.length} filtrÈes`;
+  $("rowsFilteredLabel").textContent = `${rawRows.length} filtr√©es`;
 
   $("btnReset").disabled = !rawRows.length;
   $("btnExport").disabled = !rawRows.length;
@@ -909,7 +909,7 @@ function exportExcel(){
     const obj = {};
 
     // export : champs utiles (et on garde comments + adresse1 + etc.)
-    // (les champs exclus sont dÈj‡ absents)
+    // (les champs exclus sont d√©j√† absents)
     const keepOrder = [
       "call_date","user","status","status_name","phone_number_dialed",
       "campaign_id","source_id","list_id","vendor_lead_code",
@@ -924,7 +924,7 @@ function exportExcel(){
       if(r[k] !== undefined) obj[k] = r[k];
     }
 
-    // Ajoute tout le reste non listÈ (pour ne rien perdre cÙtÈ production)
+    // Ajoute tout le reste non list√© (pour ne rien perdre c√¥t√© production)
     for(const k of Object.keys(r)){
       if(k.startsWith("__")) continue;
       if(MANUAL_FIELDS.includes(k)) continue;
@@ -932,7 +932,7 @@ function exportExcel(){
       obj[k] = r[k];
     }
 
-    // Champs manuels ‡ la fin
+    // Champs manuels √† la fin
     obj["questionnaire"] = r.q_questionnaire || "";
     obj["reponse"] = r.q_reponse || "";
     obj["autres_infos"] = r.q_autres_infos || "";
@@ -1000,12 +1000,12 @@ $("btnReset").addEventListener("click", ()=>{
   filtered = [];
   dedupKeys = new Set();
   destroyCharts();
-  $("loadedLabel").textContent = "Aucun fichier importÈ";
+  $("loadedLabel").textContent = "Aucun fichier import√©";
   $("rowsLabel").textContent = "0 lignes";
-  $("rowsFilteredLabel").textContent = "0 filtrÈes";
+  $("rowsFilteredLabel").textContent = "0 filtr√©es";
   $("kpis").innerHTML = "";
-  $("rangeLabel").textContent = "ó";
-  $("tbody").innerHTML = `<tr><td colspan="16" class="muted">Aucune donnÈe. Importez un fichier.</td></tr>`;
+  $("rangeLabel").textContent = "‚Äî";
+  $("tbody").innerHTML = `<tr><td colspan="16" class="muted">Aucune donn√©e. Importez un fichier.</td></tr>`;
   $("pivotHead").innerHTML = "";
   $("pivotBody").innerHTML = "";
   fillSelect($("agent"), [], "Tous les agents");
@@ -1031,4 +1031,5 @@ fillSelect($("agent"), [], "Tous les agents");
 fillSelect($("status"), [], "Tous les statuts");
 </script>
 </body>
+
 </html>
